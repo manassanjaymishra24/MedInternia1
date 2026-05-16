@@ -40,18 +40,22 @@ const allowedOrigins = [
   "http://localhost:3001"
 ];
 app.use(cors({
-  origin: function (origin, callback) {
-    // allow requests with no origin (like mobile apps, curl, etc)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    } else {
-      return callback(new Error("Not allowed by CORS"));
-    }
-  },
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
+  origin: allowedOrigins,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  credentials: true,
+  allowedHeaders: [
+    'Origin',
+    'X-Requested-With',
+    'Content-Type',
+    'Accept',
+    'Authorization',
+    'X-API-KEY'
+  ],
+  optionsSuccessStatus: 204
 }));
+
+// Ensure preflight OPTIONS requests are handled for all routes
+app.options('*', cors({ origin: allowedOrigins, optionsSuccessStatus: 204 }));
 app.use(morgan('combined'));
 
 // Serve uploads folder for profile images
