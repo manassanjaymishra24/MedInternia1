@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Card,
@@ -153,8 +153,6 @@ const groupedCases: {
     ],
   },
 ];
-import { fetchCurrentUserProfile } from "../utils/fetchCurrentUserProfile";
-
 const statusColor = {
   approved: "#b9f6ca",
   pending: "#fff9c4",
@@ -335,15 +333,6 @@ function CaseDetailsDialog({ open, onClose, caseData }: { open: boolean; onClose
 export default function UploadRawPage() {
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedCase, setSelectedCase] = useState<any>(null);
-  const [profile, setProfile] = useState<any>(null);
-  const [loadingProfile, setLoadingProfile] = useState(true);
-
-  useEffect(() => {
-    fetchCurrentUserProfile().then((data) => {
-      setProfile(data);
-      setLoadingProfile(false);
-    });
-  }, []);
 
   return (
     <Box
@@ -383,6 +372,7 @@ export default function UploadRawPage() {
             boxShadow: "0 4px 24px #2193b033",
             border: "1px solid #e0eafc",
             background: "#fff",
+            overflow: "hidden",
           }}
         >
           {/* Card accent bar */}
@@ -547,6 +537,7 @@ export default function UploadRawPage() {
                       boxShadow: "0 2px 12px #2193b022",
                       border: "1px solid #e0eafc",
                       cursor: "pointer",
+                      overflow: "hidden",
                       transition: "box-shadow 0.2s, transform 0.2s",
                       "&:hover": {
                         boxShadow: "0 8px 32px #2193b044",
