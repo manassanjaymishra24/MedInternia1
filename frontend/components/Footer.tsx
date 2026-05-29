@@ -111,9 +111,9 @@ export default function Footer() {
                     opacity: 0.7,
                     textDecoration: 'none',
                     cursor: 'pointer',
-                    transition: 'opacity 0.2s',
+                    transition: 'all 0.2s',
                     fontSize: '0.9rem',
-                    '&:hover': { opacity: 1, textDecoration: 'underline' },
+                    '&:hover': { opacity: 1, textDecoration: 'none', borderBottom: 'none !important' },
                   }}
                 >
                   {link.label}
@@ -143,9 +143,9 @@ export default function Footer() {
                     opacity: 0.7,
                     textDecoration: 'none',
                     cursor: 'pointer',
-                    transition: 'opacity 0.2s',
+                    transition: 'all 0.2s',
                     fontSize: '0.9rem',
-                    '&:hover': { opacity: 1, textDecoration: 'underline' },
+                    '&:hover': { opacity: 1, textDecoration: 'none', borderBottom: 'none !important' },
                   }}
                 >
                   {link.label}
