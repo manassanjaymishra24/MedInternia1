@@ -1,6 +1,6 @@
 import os
 from openai import OpenAI
-import google.generativeai as genai
+from google import genai
 
 provider = os.getenv("AI_PROVIDER", "openai")
 
@@ -35,16 +35,16 @@ if provider == "openai":
         print("OPENAI_API_KEY is not set; skipping OpenAI review.")
         raise SystemExit(0)
 
-    client = OpenAI(
-        api_key=api_key
-    )
-
-    response = client.responses.create(
-        model="gpt-4.1-mini",
-        input=prompt
-    )
-
-    print(response.output_text)
+    try:
+        client = OpenAI(api_key=api_key)
+        response = client.responses.create(
+            model="gpt-4.1-mini",
+            input=prompt
+        )
+        print(response.output_text)
+    except Exception as exc:
+        print(f"OpenAI review failed: {exc}")
+        raise SystemExit(0)
 
 elif provider == "gemini":
     api_key = os.getenv("GEMINI_API_KEY")
@@ -52,14 +52,13 @@ elif provider == "gemini":
         print("GEMINI_API_KEY is not set; skipping Gemini review.")
         raise SystemExit(0)
 
-    genai.configure(
-        api_key=api_key
-    )
-
-    model = genai.GenerativeModel(
-        "gemini-2.5-flash"
-    )
-
-    response = model.generate_content(prompt)
-
-    print(response.text)
+    try:
+        client = genai.Client(api_key=api_key)
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt
+        )
+        print(response.text)
+    except Exception as exc:
+        print(f"Gemini review failed: {exc}")
+        raise SystemExit(0)
