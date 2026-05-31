@@ -33,28 +33,24 @@ export default function Jobs() {
 
   if (loading)
     return (
-      <Box
-  sx={{
-    minHeight: "90vh",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-  }}
->
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 10 }}>
         <CircularProgress />
       </Box>
     );
   if (error) return <Alert severity="error">{error}</Alert>;
 
   return (
-   <Box
-  maxWidth={700}
-  mx="auto"
-  my={4}
-  sx={{
-    minHeight: "80vh",
-  }}
->
+    <Box
+      maxWidth={700}
+      mx="auto"
+      my={4}
+      sx={{
+        minHeight: "80vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
       <Card
         sx={{
           p: 4,
