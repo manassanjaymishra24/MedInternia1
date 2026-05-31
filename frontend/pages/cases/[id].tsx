@@ -153,20 +153,7 @@ export default function CaseDiscussion({ id: propId, modalMode, hideDescription 
     }
   };
 
-if (loading)
-  return (
-    <Box
-      sx={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        width: "100%",
-        minHeight: "100vh",
-      }}
-    >
-      <CircularProgress />
-    </Box>
-  );
+  if (loading) return <CircularProgress />;
   if (error) return <Alert severity="error">{error}</Alert>;
   if (!caseData) return null;
 
