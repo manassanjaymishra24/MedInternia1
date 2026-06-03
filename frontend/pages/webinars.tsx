@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import {
   Box,
   Typography,
@@ -86,7 +87,7 @@ export default function WebinarsPage() {
           </Typography>
           {canManageWebinars && (
             <IconButton
-              onClick={() => window.location.href = '/webinars/create'}
+              onClick={() => router.push('/webinars/create')}
               color="primary"
               sx={{ bgcolor: "#e3f2fd", borderRadius: 2 }}
               aria-label="Add Webinar"
