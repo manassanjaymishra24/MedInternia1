@@ -309,6 +309,14 @@ const UserSchema = new Schema<IUser>({
   timestamps: true
 });
 
+// Clamp mentoringCredits to non-negative before saving
+UserSchema.pre('save', function (next) {
+  if (this.mentoringCredits !== undefined && this.mentoringCredits < 0) {
+    this.mentoringCredits = 0;
+  }
+  next();
+});
+
 // Hash password before saving
 UserSchema.pre('save', async function (next) {
   if (!this.isModified('password')) {
