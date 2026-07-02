@@ -2,6 +2,8 @@ import type { AppProps } from 'next/app';
 import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline, Snackbar, Alert, Typography } from '@mui/material';
 import { useNotifications } from '../hooks/useNotifications';
+import { AuthProvider } from '../context/AuthContext';
+import ErrorBoundary from '../components/ErrorBoundary';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useRouter } from 'next/router';
@@ -25,65 +27,69 @@ function MyApp({ Component, pageProps }: AppProps) {
   const navbarHeight = medInterniaTheme.custom.navbarHeight;
 
   return (
-    <ThemeProvider theme={medInterniaTheme}>
-      <Head>
-        <title>MedInternia</title>
-        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-        <link rel="shortcut icon" href="/favicon.ico" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-          rel="stylesheet"
-        />
-      </Head>
+    <ErrorBoundary>
+      <AuthProvider>
+        <ThemeProvider theme={medInterniaTheme}>
+          <Head>
+            <title>MedInternia</title>
+            <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+            <link rel="shortcut icon" href="/favicon.ico" />
+            <link rel="preconnect" href="https://fonts.googleapis.com" />
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+            <link
+              href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+              rel="stylesheet"
+            />
+          </Head>
 
-      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', overflowX: 'hidden', maxWidth: '100%' }}>
-        <CssBaseline />
-        {showNavbar && <Navbar route={router.pathname} />}
-        <div
-          style={{
-            marginTop: showNavbar ? navbarHeight : 0,
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-        >
-          <Component {...pageProps} />
-        </div>
-        {showFooter && <Footer />}
-        <Chatbot />
+          <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', overflowX: 'hidden', maxWidth: '100%' }}>
+            <CssBaseline />
+            {showNavbar && <Navbar route={router.pathname} />}
+            <div
+              style={{
+                marginTop: showNavbar ? navbarHeight : 0,
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
+              <Component {...pageProps} />
+            </div>
+            {showFooter && <Footer />}
+            <Chatbot />
 
-        <Snackbar
-          open={!!newToast}
-          autoHideDuration={4000}
-          onClose={clearToast}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        >
-          <Alert
-            onClose={clearToast}
-            severity="info"
-            variant="filled"
-            onClick={() => {
-              if (newToast?.link) router.push(newToast.link);
-              clearToast();
-            }}
-            sx={{
-              cursor: newToast?.link ? 'pointer' : 'default',
-              background: (theme) => theme.custom.navbarGradient,
-              color: 'white',
-              minWidth: 280,
-              '& .MuiAlert-icon': { color: 'white' },
-            }}
-          >
-            <Typography variant="body2" fontWeight={600}>
-              New Notification
-            </Typography>
-            <Typography variant="caption">{newToast?.message}</Typography>
-          </Alert>
-        </Snackbar>
-      </div>
-    </ThemeProvider>
+            <Snackbar
+              open={!!newToast}
+              autoHideDuration={4000}
+              onClose={clearToast}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            >
+              <Alert
+                onClose={clearToast}
+                severity="info"
+                variant="filled"
+                onClick={() => {
+                  if (newToast?.link) router.push(newToast.link);
+                  clearToast();
+                }}
+                sx={{
+                  cursor: newToast?.link ? 'pointer' : 'default',
+                  background: (theme) => theme.custom.navbarGradient,
+                  color: 'white',
+                  minWidth: 280,
+                  '& .MuiAlert-icon': { color: 'white' },
+                }}
+              >
+                <Typography variant="body2" fontWeight={600}>
+                  New Notification
+                </Typography>
+                <Typography variant="caption">{newToast?.message}</Typography>
+              </Alert>
+            </Snackbar>
+          </div>
+        </ThemeProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

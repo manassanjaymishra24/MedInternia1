@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Typography, TextField, Button, Box, Alert, Divider, IconButton, InputAdornment, CircularProgress } from '@mui/material';
+import { Typography, TextField, Button, Box, Alert, Paper, Divider, IconButton, InputAdornment, CircularProgress } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 import Link from 'next/link';
 import api from '../../utils/api';
 import { useRouter } from 'next/router';
@@ -50,6 +51,22 @@ export default function Login() {
       subtitle="Sign in to access medical cases, peer discussions, job opportunities, and your personalized learning dashboard."
     >
       <AuthCard>
+        <IconButton
+          aria-label="close"
+          onClick={() => router.back()}
+          sx={{
+            position: 'absolute',
+            right: 16,
+            top: 16,
+            color: 'text.secondary',
+            zIndex: 2,
+            '&:hover': {
+              backgroundColor: 'rgba(0, 0, 0, 0.04)',
+            }
+          }}
+        >
+          <CloseIcon />
+        </IconButton>
         <Typography variant="h4" gutterBottom align="center" sx={{ fontWeight: 800, color: 'primary.main', mb: 1 }}>
           Login
         </Typography>
@@ -168,6 +185,25 @@ export default function Login() {
               ),
             }}
           />
+          <Box
+  sx={{
+    display: "flex",
+    justifyContent: "flex-end",
+    mt: 1,
+    mb: 2,
+  }}
+>
+  <Link
+    href="/auth/forgot-password"
+    style={{
+      textDecoration: "none",
+      color: "#1565c0",
+      fontWeight: 600,
+    }}
+  >
+    Forgot Password?
+  </Link>
+</Box>
           {/* GSSoC: Disabled + spinner when loading */}
           <Button
             type="submit"

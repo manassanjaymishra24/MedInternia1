@@ -33,6 +33,7 @@ import ArticleIcon from '@mui/icons-material/Article';
 import CloseIcon from '@mui/icons-material/Close';
 
 import { getCurrentUserRole } from '../utils/permissions';
+import { getAuthToken } from "../utils/api";
 
 interface NavButtonProps {
   href: string;
@@ -113,7 +114,8 @@ export default function Navbar({ route }: { route?: string }) {
 
   const handleHomeNav = () => {
     if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('token');
+      const token = getAuthToken();
+      const role = getCurrentUserRole() || "";
       if (token) {
         router.push('/dashboard');
         return;
@@ -144,7 +146,7 @@ export default function Navbar({ route }: { route?: string }) {
   const [isLoggedIn, setIsLoggedIn] = React.useState<boolean>(false);
 
   React.useEffect(() => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    const token = getAuthToken();
     const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
     if (!token || !userId) {
       setIsLoggedIn(false);
@@ -154,9 +156,7 @@ export default function Navbar({ route }: { route?: string }) {
 
     import('../utils/api').then((apiModule) => {
       apiModule.default
-        .get(`/users/${userId}/profile`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+        .get(`/users/${userId}/profile`)
         .then((res) => {
           const userData = res.data?.data?.user || res.data?.user || res.data;
           setProfileImageUrl(userData.profilePicture || undefined);
@@ -170,7 +170,7 @@ export default function Navbar({ route }: { route?: string }) {
           setLastName('');
         });
     });
-  }, []);
+  }, [getAuthToken()]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();

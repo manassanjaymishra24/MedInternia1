@@ -15,6 +15,8 @@ import {
   IconButton
 } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
+import CaseCard from '../../components/CaseCard';
+import CaseFilters, { CaseFilterParams } from '../../components/CaseFilters';
 import api from "../../utils/api";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -64,7 +66,6 @@ export default function Cases() {
 
   const [expanded, setExpanded] = useState<string | null>(null);
   const [openDiscussionId, setOpenDiscussionId] = useState<string | null>(null);
-
   const theme = useTheme();
   const router = useRouter();
 
@@ -197,7 +198,6 @@ export default function Cases() {
       />
 
       {/* Recommended for you row */}
-      {/* Recommended for you row */}
       {isLoggedIn && (
         <Box sx={{ mb: 5 }}>
           <Stack direction="row" alignItems="center" gap={1} sx={{ mb: 2 }}>
@@ -240,6 +240,7 @@ export default function Cases() {
                 },
                 '&::-webkit-scrollbar-thumb:hover': {
                   background: '#94a3b8',
+                  borderRadius: '10px',
                 },
               }}
             >
@@ -247,11 +248,9 @@ export default function Cases() {
                 <Box
                   key={rc._id}
                   sx={{
+                    minWidth: { xs: 280, sm: 340 },
+                    maxWidth: { xs: 280, sm: 340 },
                     flexShrink: 0,
-                    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                    '&:hover': {
-                      transform: 'scale(1.02) translateY(-4px)'
-                    }
                   }}
                 >
                   <Card

@@ -18,15 +18,20 @@ import {
   CardMedia,
   Chip,
   Avatar,
-  Divider
+  Divider,
+  Tabs,
+  Tab
 } from '@mui/material';
 import { MessageCircleReply, Pin, CheckCircle2, Sparkles } from 'lucide-react';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import PushPinIcon from '@mui/icons-material/PushPin';
 import ThumbUpAltOutlinedIcon from '@mui/icons-material/ThumbUpAltOutlined';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../utils/api';
+import PdfExportButton from '../../components/PdfExportButton';
+import ClinicalTimeline from '../../components/ClinicalTimeline';
 
 export default function CaseDiscussion({ id: propId, modalMode, hideDescription }: { id?: string, modalMode?: boolean, hideDescription?: boolean }) {
   const router = useRouter();
@@ -37,6 +42,9 @@ export default function CaseDiscussion({ id: propId, modalMode, hideDescription 
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isSolved, setIsSolved] = useState(false);
   const [solving, setSolving] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [selectedComment, setSelectedComment] = useState<any>(null);
 
   const [replyTo, setReplyTo] = useState<any>(null);
   const [replyContent, setReplyContent] = useState('');
@@ -227,6 +235,9 @@ export default function CaseDiscussion({ id: propId, modalMode, hideDescription 
     : 'Unknown Clinician';
   const caseAuthorAvatar = caseData.doctor?.profilePicture || undefined;
 
+  // Merge pinned and regular discussions for PDF export
+  const allDiscussions = [...pinned, ...discussions];
+
   // Comments / Peer reviews sub-panel JSX
   const discussionPanel = (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: '400px' }}>
@@ -247,16 +258,16 @@ export default function CaseDiscussion({ id: propId, modalMode, hideDescription 
                 <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary' }}>
                   "{c.content}"
                 </Typography>
-                  <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                      — {authorName} ({c.author?.userType})
-                    </Typography>
-                    {canModerate && (
-                      <Button size="small" onClick={() => handleUnpin(c._id)} sx={{ p: 0, minWidth: 0, fontSize: 11, color: 'error.main' }}>
-                        Unpin
-                      </Button>
-                    )}
-                  </Stack>
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
+                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                    — {authorName} ({c.author?.userType})
+                  </Typography>
+                  {canModerate && (
+                    <Button size="small" onClick={() => handleUnpin(c._id)} sx={{ p: 0, minWidth: 0, fontSize: 11, color: 'error.main' }}>
+                      Unpin
+                    </Button>
+                  )}
+                </Stack>
               </Box>
             );
           })}
@@ -432,15 +443,18 @@ export default function CaseDiscussion({ id: propId, modalMode, hideDescription 
       {error && <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError('')}>{error}</Alert>}
 
       <Grid container spacing={4}>
-        {/* Left Column: Case details and AI insights */}
+        {/* Left Column: Case details or Timeline (depending on active tab) */}
         <Grid size={{ xs: 12, md: 7, lg: 8 }}>
           <Box sx={{ mb: 3 }}>
-            <Typography variant="h3" fontWeight={900} color="text.primary" sx={{ mb: 2, letterSpacing: -0.5 }}>
-              {caseData.title}
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 1, flexWrap: 'wrap', gap: 2 }}>
+              <Typography variant="h3" fontWeight={900} color="text.primary" sx={{ flex: 1, letterSpacing: -0.5, mb: 0 }}>
+                {caseData.title}
+              </Typography>
+              <PdfExportButton caseData={caseData} discussions={allDiscussions} />
+            </Box>
 
             {/* AI Prominent Badges */}
-            <Stack direction="row" gap={1.5} flexWrap="wrap" sx={{ mb: 3 }}>
+            <Stack direction="row" gap={1.5} flexWrap="wrap" sx={{ mb: 3, mt: 1 }}>
               {caseData.specialization && (
                 <Chip
                   label={`🩺 specialty: ${caseData.specialization}`}
@@ -490,7 +504,7 @@ export default function CaseDiscussion({ id: propId, modalMode, hideDescription 
             </Stack>
 
             {/* Author and Date Meta Row */}
-            <Stack direction="row" alignItems="center" gap={1.5} sx={{ mb: 4 }}>
+            <Stack direction="row" alignItems="center" gap={1.5} sx={{ mb: 2 }}>
               <Avatar src={caseAuthorAvatar} sx={{ width: 44, height: 44, bgcolor: 'primary.light', color: 'primary.dark', fontWeight: 700 }}>
                 {caseAuthorName[0]}
               </Avatar>
@@ -529,133 +543,150 @@ export default function CaseDiscussion({ id: propId, modalMode, hideDescription 
             </Stack>
           </Box>
 
-          <Divider sx={{ mb: 4 }} />
-
-          {/* Patient Info Card */}
-          {caseData.patientInfo && (caseData.patientInfo.age || caseData.patientInfo.gender || (caseData.patientInfo.medicalHistory && caseData.patientInfo.medicalHistory.length > 0) || (caseData.patientInfo.currentMedications && caseData.patientInfo.currentMedications.length > 0)) && (
-            <Card sx={{ p: 2.5, mb: 4, borderRadius: 3, border: '1px solid #e2e8f0', bgcolor: '#fafcff' }}>
-              <Typography variant="subtitle1" fontWeight={700} color="primary.main" sx={{ mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
-                📋 Patient Information
-              </Typography>
-              <Grid container spacing={2}>
-                {caseData.patientInfo.age && (
-                  <Grid size={{ xs: 6, sm: 3 }}>
-                    <Typography variant="caption" color="text.secondary" display="block">Age</Typography>
-                    <Typography variant="body2" fontWeight={600} color="text.primary">{caseData.patientInfo.age} years</Typography>
-                  </Grid>
-                )}
-                {caseData.patientInfo.gender && (
-                  <Grid size={{ xs: 6, sm: 3 }}>
-                    <Typography variant="caption" color="text.secondary" display="block">Gender</Typography>
-                    <Typography variant="body2" fontWeight={600} color="text.primary" sx={{ textTransform: 'capitalize' }}>{caseData.patientInfo.gender}</Typography>
-                  </Grid>
-                )}
-                {caseData.patientInfo.medicalHistory && caseData.patientInfo.medicalHistory.length > 0 && (
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <Typography variant="caption" color="text.secondary" display="block">Medical History</Typography>
-                    <Typography variant="body2" fontWeight={600} color="text.primary">{caseData.patientInfo.medicalHistory.join(', ')}</Typography>
-                  </Grid>
-                )}
-                {caseData.patientInfo.currentMedications && caseData.patientInfo.currentMedications.length > 0 && (
-                  <Grid size={{ xs: 12 }}>
-                    <Typography variant="caption" color="text.secondary" display="block">Current Medications</Typography>
-                    <Typography variant="body2" fontWeight={600} color="text.primary">{caseData.patientInfo.currentMedications.join(', ')}</Typography>
-                  </Grid>
-                )}
-              </Grid>
-            </Card>
-          )}
-
-          {/* Description */}
-          <Box sx={{ mb: 4 }}>
-            <Typography variant="h6" fontWeight={800} sx={{ mb: 2, color: 'primary.dark' }}>
-              Clinical History & Details
-            </Typography>
-            <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', color: 'text.primary', fontSize: '1.05rem', lineHeight: 1.7 }}>
-              {caseData.description}
-            </Typography>
-          </Box>
-
-          {/* Supporting materials */}
-          {caseData.images && caseData.images.length > 0 && (
-            <Box sx={{ mb: 4 }}>
-              <Typography variant="h6" fontWeight={800} sx={{ mb: 2, color: 'primary.dark' }}>
-                Supporting Medical Media (Images)
-              </Typography>
-              <Grid container spacing={2}>
-                {caseData.images.map((img: string, idx: number) => (
-                  <Grid size={{ xs: 12, sm: 6 }} key={idx}>
-                    <Card sx={{ borderRadius: 3, border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.01)', overflow: 'hidden' }}>
-                      <CardMedia
-                        component="img"
-                        image={img}
-                        alt={`Clinical supporting photo ${idx + 1}`}
-                        sx={{ height: 260, objectFit: 'cover', cursor: 'pointer', transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.02)' } }}
-                        onClick={() => window.open(img, '_blank')}
-                      />
-                    </Card>
-                  </Grid>
-                ))}
-              </Grid>
-            </Box>
-          )}
-
-          {/* AI Clinical Insights card */}
-          <Card
-            sx={{
-              borderRadius: 4,
-              border: '1.5px solid rgba(0, 114, 255, 0.15)',
-              background: 'linear-gradient(180deg, #f8fbff 0%, #ffffff 100%)',
-              boxShadow: '0 4px 20px rgba(0, 114, 255, 0.05)',
-              mb: 4,
-            }}
+          <Tabs
+            value={activeTab}
+            onChange={(e, val) => setActiveTab(val)}
+            sx={{ mb: 3, borderBottom: '1px solid #e2e8f0' }}
           >
-            <CardContent sx={{ p: 3 }}>
-              <Stack direction="row" alignItems="center" gap={1.2} sx={{ mb: 2 }}>
-                <Box sx={{ bgcolor: 'primary.light', p: 0.8, borderRadius: '8px', color: 'primary.main', display: 'flex', alignItems: 'center' }}>
-                  <Sparkles size={20} />
-                </Box>
-                <Typography variant="h6" fontWeight={800} color="primary.dark">
-                  AI Clinical Insights
+            <Tab label="Case Details" sx={{ fontWeight: 600 }} />
+            <Tab label="Clinical Timeline" sx={{ fontWeight: 600 }} />
+          </Tabs>
+
+          {activeTab === 0 && (
+            <>
+              <Divider sx={{ mb: 4 }} />
+
+              {/* Patient Info Card */}
+              {caseData.patientInfo && (caseData.patientInfo.age || caseData.patientInfo.gender || (caseData.patientInfo.medicalHistory && caseData.patientInfo.medicalHistory.length > 0) || (caseData.patientInfo.currentMedications && caseData.patientInfo.currentMedications.length > 0)) && (
+                <Card sx={{ p: 2.5, mb: 4, borderRadius: 3, border: '1px solid #e2e8f0', bgcolor: '#fafcff' }}>
+                  <Typography variant="subtitle1" fontWeight={700} color="primary.main" sx={{ mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+                    📋 Patient Information
+                  </Typography>
+                  <Grid container spacing={2}>
+                    {caseData.patientInfo.age && (
+                      <Grid size={{ xs: 6, sm: 3 }}>
+                        <Typography variant="caption" color="text.secondary" display="block">Age</Typography>
+                        <Typography variant="body2" fontWeight={600} color="text.primary">{caseData.patientInfo.age} years</Typography>
+                      </Grid>
+                    )}
+                    {caseData.patientInfo.gender && (
+                      <Grid size={{ xs: 6, sm: 3 }}>
+                        <Typography variant="caption" color="text.secondary" display="block">Gender</Typography>
+                        <Typography variant="body2" fontWeight={600} color="text.primary" sx={{ textTransform: 'capitalize' }}>{caseData.patientInfo.gender}</Typography>
+                      </Grid>
+                    )}
+                    {caseData.patientInfo.medicalHistory && caseData.patientInfo.medicalHistory.length > 0 && (
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <Typography variant="caption" color="text.secondary" display="block">Medical History</Typography>
+                        <Typography variant="body2" fontWeight={600} color="text.primary">{caseData.patientInfo.medicalHistory.join(', ')}</Typography>
+                      </Grid>
+                    )}
+                    {caseData.patientInfo.currentMedications && caseData.patientInfo.currentMedications.length > 0 && (
+                      <Grid size={{ xs: 12 }}>
+                        <Typography variant="caption" color="text.secondary" display="block">Current Medications</Typography>
+                        <Typography variant="body2" fontWeight={600} color="text.primary">{caseData.patientInfo.currentMedications.join(', ')}</Typography>
+                      </Grid>
+                    )}
+                  </Grid>
+                </Card>
+              )}
+
+              {/* Description */}
+              <Box sx={{ mb: 4 }}>
+                <Typography variant="h6" fontWeight={800} sx={{ mb: 2, color: 'primary.dark' }}>
+                  Clinical History & Details
                 </Typography>
-              </Stack>
+                <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', color: 'text.primary', fontSize: '1.05rem', lineHeight: 1.7 }}>
+                  {caseData.description}
+                </Typography>
+              </Box>
 
-              {caseData.symptoms && caseData.symptoms.length > 0 && (
-                <Box sx={{ mb: 2.5 }}>
-                  <Typography variant="subtitle2" fontWeight={700} color="text.secondary">
-                    Extracted symptoms:
+              {/* Supporting materials */}
+              {caseData.images && caseData.images.length > 0 && (
+                <Box sx={{ mb: 4 }}>
+                  <Typography variant="h6" fontWeight={800} sx={{ mb: 2, color: 'primary.dark' }}>
+                    Supporting Medical Media (Images)
                   </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-                    {caseData.symptoms.map((s: string) => (
-                      <Chip key={s} label={s} size="small" sx={{ bgcolor: '#ebf4ff', color: 'primary.dark', fontWeight: 600 }} />
+                  <Grid container spacing={2}>
+                    {caseData.images.map((img: string, idx: number) => (
+                      <Grid size={{ xs: 12, sm: 6 }} key={idx}>
+                        <Card sx={{ borderRadius: 3, border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.01)', overflow: 'hidden' }}>
+                          <CardMedia
+                            component="img"
+                            image={img}
+                            alt={`Clinical supporting photo ${idx + 1}`}
+                            sx={{ height: 260, objectFit: 'cover', cursor: 'pointer', transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.02)' } }}
+                            onClick={() => window.open(img, '_blank')}
+                          />
+                        </Card>
+                      </Grid>
                     ))}
-                  </Box>
+                  </Grid>
                 </Box>
               )}
 
-              {caseData.diagnosis && (
-                <Box sx={{ mb: 2.5 }}>
-                  <Typography variant="subtitle2" fontWeight={700} color="text.secondary">
-                    Likely Diagnosis:
-                  </Typography>
-                  <Typography variant="body1" fontWeight={700} color="text.primary" sx={{ mt: 0.5, bgcolor: '#f1f5f9', p: 1.5, borderRadius: 2 }}>
-                    💡 {caseData.diagnosis}
-                  </Typography>
-                </Box>
-              )}
+              {/* AI Clinical Insights card */}
+              <Card
+                sx={{
+                  borderRadius: 4,
+                  border: '1.5px solid rgba(0, 114, 255, 0.15)',
+                  background: 'linear-gradient(180deg, #f8fbff 0%, #ffffff 100%)',
+                  boxShadow: '0 4px 20px rgba(0, 114, 255, 0.05)',
+                  mb: 4,
+                }}
+              >
+                <CardContent sx={{ p: 3 }}>
+                  <Stack direction="row" alignItems="center" gap={1.2} sx={{ mb: 2 }}>
+                    <Box sx={{ bgcolor: 'primary.light', p: 0.8, borderRadius: '8px', color: 'primary.main', display: 'flex', alignItems: 'center' }}>
+                      <Sparkles size={20} />
+                    </Box>
+                    <Typography variant="h6" fontWeight={800} color="primary.dark">
+                      AI Clinical Insights
+                    </Typography>
+                  </Stack>
 
-              {caseData.treatment && (
-                <Box>
-                  <Typography variant="subtitle2" fontWeight={700} color="text.secondary">
-                    Recommended Treatment / Management:
-                  </Typography>
-                  <Typography variant="body2" color="text.primary" sx={{ mt: 0.7, whiteSpace: 'pre-line', bgcolor: '#fdfdfd', border: '1px solid #e2e8f0', p: 2, borderRadius: 2 }}>
-                    {caseData.treatment}
-                  </Typography>
-                </Box>
-              )}
-            </CardContent>
-          </Card>
+                  {caseData.symptoms && caseData.symptoms.length > 0 && (
+                    <Box sx={{ mb: 2.5 }}>
+                      <Typography variant="subtitle2" fontWeight={700} color="text.secondary">
+                        Extracted symptoms:
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                        {caseData.symptoms.map((s: string) => (
+                          <Chip key={s} label={s} size="small" sx={{ bgcolor: '#ebf4ff', color: 'primary.dark', fontWeight: 600 }} />
+                        ))}
+                      </Box>
+                    </Box>
+                  )}
+
+                  {caseData.diagnosis && (
+                    <Box sx={{ mb: 2.5 }}>
+                      <Typography variant="subtitle2" fontWeight={700} color="text.secondary">
+                        Likely Diagnosis:
+                      </Typography>
+                      <Typography variant="body1" fontWeight={700} color="text.primary" sx={{ mt: 0.5, bgcolor: '#f1f5f9', p: 1.5, borderRadius: 2 }}>
+                        💡 {caseData.diagnosis}
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {caseData.treatment && (
+                    <Box>
+                      <Typography variant="subtitle2" fontWeight={700} color="text.secondary">
+                        Recommended Treatment / Management:
+                      </Typography>
+                      <Typography variant="body2" color="text.primary" sx={{ mt: 0.7, whiteSpace: 'pre-line', bgcolor: '#fdfdfd', border: '1px solid #e2e8f0', p: 2, borderRadius: 2 }}>
+                        {caseData.treatment}
+                      </Typography>
+                    </Box>
+                  )}
+                </CardContent>
+              </Card>
+            </>
+          )}
+
+          {activeTab === 1 && (
+            <ClinicalTimeline caseData={caseData} discussions={allDiscussions} />
+          )}
 
           {/* Pinned insight placeholder container */}
           <Box sx={{ mb: 1 }} />
