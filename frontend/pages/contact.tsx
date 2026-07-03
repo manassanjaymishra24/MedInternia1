@@ -96,12 +96,12 @@ export default function ContactPage() {
                 Reach the team for platform support, collaboration queries, and medical learning opportunities.
               </Typography>
               <Button
-                component={Link}
-                href="/dashboard"
-                variant="contained"
-                aria-label="Back to Home"
-                startIcon={<Home size={18} />}
-                sx={{
+  component={Link}
+  href={isLoggedIn ? "/dashboard" : "/"}
+  variant="contained"
+  aria-label={isLoggedIn ? "Go to Dashboard" : "Back to Home"}
+  startIcon={<Home size={18} />}
+  sx={{
                   mt: 4,
                   borderRadius: 30,
                   px: 4,
@@ -121,7 +121,7 @@ export default function ContactPage() {
                   },
                 }}
               >
-                Return to Dashboard
+                {isLoggedIn ? "Return to Dashboard" : "Return to Home"}
               </Button>
             </Box>
 
