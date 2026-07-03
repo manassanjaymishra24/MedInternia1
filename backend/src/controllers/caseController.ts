@@ -218,7 +218,7 @@ export const replyToComment = asyncHandler(
       _id: new mongoose.Types.ObjectId(),
     };
     caseDoc.comments.push(reply as any);
-    parentComment.replies.push(reply._id);
+    parentComment.replies.push(reply._id as any);
     await caseDoc.save();
 
     // Send notification to comment author if not replying to own comment
