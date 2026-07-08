@@ -198,10 +198,18 @@ CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
 CLOUDINARY_API_KEY=your_cloudinary_api_key
 CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 
-EMAIL_USER=your_email
-EMAIL_PASS=your_password
+EMAIL_USER=your_gmail@gmail.com
+EMAIL_PASS=your_gmail_app_password    # ⚠️ 16-char App Password — NOT your Gmail password
+                                       # Generate at: myaccount.google.com/apppasswords
 EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
+
+> **⚠️ Gmail SMTP Note:** Google permanently removed support for password-based SMTP
+> in August 2024. `EMAIL_PASS` must be a **Gmail App Password** (not your account password).
+> Enable 2-Step Verification first, then generate an App Password at
+> [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords).
+> For local development without sending real emails, use [Mailtrap](https://mailtrap.io) (free).
+
 ```
 
 ---
